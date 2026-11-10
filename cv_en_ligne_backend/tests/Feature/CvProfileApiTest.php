@@ -113,13 +113,18 @@ class CvProfileApiTest extends TestCase
     {
         config(['cors.allowed_origins' => ['https://mon-cv.vercel.app']]);
 
-        $this->withHeaders([
-            'Origin' => 'https://mon-cv.vercel.app',
-            'Access-Control-Request-Method' => 'PUT',
-            'Access-Control-Request-Headers' => 'content-type,authorization',
-        ])->options('/api/cv')
-            ->assertNoContent()
-            ->assertHeader('Access-Control-Allow-Origin', 'https://mon-cv.vercel.app');
+        foreach (['POST', 'DELETE'] as $method) {
+            $response = $this->withHeaders([
+                'Origin' => 'https://mon-cv.vercel.app',
+                'Access-Control-Request-Method' => $method,
+                'Access-Control-Request-Headers' => 'content-type,authorization',
+            ])->options('/api/cv');
+
+            $response
+                ->assertNoContent()
+                ->assertHeader('Access-Control-Allow-Origin', 'https://mon-cv.vercel.app');
+            $this->assertStringContainsString($method, $response->headers->get('Access-Control-Allow-Methods', ''));
+        }
     }
 
     private function validProfile(): array

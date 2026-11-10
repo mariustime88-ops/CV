@@ -7,7 +7,7 @@ $frontendUrls = array_filter(array_map(
 
 return [
     'paths' => ['api/*'],
-    'allowed_methods' => ['GET', 'PUT', 'OPTIONS'],
+    'allowed_methods' => ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     'allowed_origins' => $frontendUrls,
     'allowed_origins_patterns' => [],
     'allowed_headers' => ['Content-Type', 'Authorization'],
