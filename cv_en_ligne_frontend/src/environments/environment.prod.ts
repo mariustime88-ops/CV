@@ -1,3 +1,3 @@
 export const environment = {
-  apiBaseUrl: 'https://YOUR-RENDER-SERVICE.onrender.com/api',
+  apiBaseUrl: 'https://cv-en-ligne-api.onrender.com/api',
 };
