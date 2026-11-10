@@ -1,0 +1,43 @@
+:host {
+  display: block;
+}
+
+.profile-copy p,
+.entry-description p {
+  margin: 0 0 8px;
+}
+
+.profile-copy p:last-child,
+.entry-description p:last-child {
+  margin-bottom: 0;
+}
+
+.profile-copy ul,
+.profile-copy ol,
+.entry-description ul,
+.entry-description ol {
+  margin: 5px 0;
+  padding-left: 21px;
+}
+
+.profile-copy blockquote,
+.entry-description blockquote {
+  margin: 8px 0;
+  padding-left: 11px;
+  border-left: 2px solid #8eadd3;
+  color: #5b6d84;
+}
+
+.logout-button {
+  min-height: 34px;
+  padding: 0 10px;
+  color: #9c3d37;
+}
+
+.login-form {
+  max-width: 430px;
+  padding: 24px;
+  border: 1px solid #dfe6ef;
+  border-radius: 13px;
+  background: #fff;
+}

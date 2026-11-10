@@ -1,0 +1,30 @@
+<div class="rich-editor">
+  <div class="editor-toolbar" role="toolbar" aria-label="Mise en forme du texte">
+    <select aria-label="Style de paragraphe" [disabled]="disabled" (mousedown)="captureSelection()" (change)="changeBlock($event)">
+      @for (block of blockTypes; track block.value) {
+        <option [value]="block.value">{{ block.label }}</option>
+      }
+    </select>
+    <span class="toolbar-separator" aria-hidden="true"></span>
+    <button type="button" aria-label="Gras" title="Gras" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('bold')"><strong>B</strong></button>
+    <button type="button" aria-label="Italique" title="Italique" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('italic')"><em>I</em></button>
+    <button type="button" aria-label="Souligné" title="Souligné" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('underline')"><u>U</u></button>
+    <span class="toolbar-separator" aria-hidden="true"></span>
+    <button type="button" aria-label="Liste numérotée" title="Liste numérotée" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('insertOrderedList')">1.</button>
+    <button type="button" aria-label="Liste à puces" title="Liste à puces" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('insertUnorderedList')">☷</button>
+    <button type="button" aria-label="Citation" title="Citation" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('formatBlock', 'blockquote')">❞</button>
+    <button type="button" aria-label="Insérer un lien" title="Insérer un lien" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="addLink()">↗</button>
+    <button type="button" aria-label="Effacer le formatage" title="Effacer le formatage" [disabled]="disabled" (mousedown)="saveSelection($event)" (click)="applyCommand('removeFormat')">T<sub>×</sub></button>
+  </div>
+  <div
+    #editor
+    class="editor-content"
+    contenteditable="true"
+    role="textbox"
+    aria-multiline="true"
+    [attr.aria-label]="label"
+    [attr.data-placeholder]="placeholder"
+    (input)="onInput()"
+    (blur)="touchEditor()"
+  ></div>
+</div>
