@@ -1,0 +1,9 @@
+.env
+.git
+.claude
+.idea
+.phpunit.cache
+node_modules
+storage/logs/*
+tests
+vendor
