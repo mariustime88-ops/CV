@@ -30,6 +30,8 @@ export class App implements OnDestroy, OnInit {
   protected readonly authenticated = signal(false);
   protected readonly loggingIn = signal(false);
   protected readonly saving = signal(false);
+  protected readonly exporting = signal(false);
+  protected readonly exportError = signal('');
   protected readonly loginError = signal('');
   protected readonly saveError = signal('');
   protected readonly saveSuccess = signal('');
@@ -115,7 +117,10 @@ export class App implements OnDestroy, OnInit {
       next: () => this.closeEditor(),
       error: (error: unknown) => {
         this.loginError.set(
-          this.errorMessage(error, 'La session locale est fermée, mais la déconnexion serveur a échoué.'),
+          this.errorMessage(
+            error,
+            'La session locale est fermée, mais la déconnexion serveur a échoué.',
+          ),
         );
       },
     });
@@ -190,39 +195,132 @@ export class App implements OnDestroy, OnInit {
     });
   }
 
-  protected exportPdf(): void {
-    window.print();
+  protected async exportPdf(): Promise<void> {
+    const cvElement = this.document.getElementById('cv');
+
+    if (!(cvElement instanceof HTMLElement)) {
+      this.exportError.set('Impossible de trouver le CV à exporter.');
+      return;
+    }
+
+    this.exporting.set(true);
+    this.exportError.set('');
+
+    try {
+      const { default: html2pdf } = await import('html2pdf.js');
+      await html2pdf()
+        .set({
+          filename: `${this.fileName(this.cv().name)}-cv.pdf`,
+          margin: 8,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            windowWidth: 1200,
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+        })
+        .from(cvElement)
+        .save();
+    } catch (error: unknown) {
+      console.error('PDF export failed.', error);
+      this.exportError.set('Le téléchargement du PDF a échoué. Réessayez.');
+    } finally {
+      this.exporting.set(false);
+    }
   }
 
   protected exportWord(): void {
     const profile = this.cv();
+    this.exportError.set('');
     const entries = (items: CvEntry[]) =>
       items
         .map(
-          (item) => `<article>
-            <p style="color:#2463c4;font-weight:bold">${this.escapeHtml(item.period)}</p>
-            <h3>${this.escapeHtml(item.title)}</h3>
-            <p><strong>${this.escapeHtml(item.organization)}</strong></p>
-            <div>${this.richHtml(item.description)}</div>
-          </article>`,
+          (
+            item,
+          ) => `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 18pt">
+            <tr><td style="padding:0 0 4pt;color:#176f70;font-size:10pt;font-weight:bold">${this.escapeHtml(item.period)}</td></tr>
+            <tr><td style="padding:0 0 3pt;color:#1a2539;font-size:12pt;font-weight:bold">${this.escapeHtml(item.title)}</td></tr>
+            <tr><td style="padding:0 0 8pt;color:#374151;font-size:10pt;font-weight:bold">${this.escapeHtml(item.organization)}</td></tr>
+            <tr><td style="color:#374151;font-size:10pt;line-height:1.55">${this.richHtml(item.description)}</td></tr>
+          </table>`,
         )
         .join('');
-    const list = (items: string[]) =>
-      items.map((item) => `<li>${this.escapeHtml(item)}</li>`).join('');
+    const section = (number: string, title: string, content: string) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 24pt">
+        <tr>
+          <td width="38" valign="top" style="width:38px;padding:0 10pt 0 0">
+            <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+              <tr><td width="30" height="30" align="center" valign="middle" style="width:30px;height:30px;border:1px solid #176f70;border-radius:50%;color:#176f70;font-size:9pt;font-weight:bold">${number}</td></tr>
+            </table>
+          </td>
+          <td valign="top">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse">
+              <tr><td style="padding:0 0 10pt;border-bottom:1px solid #9baeb8;color:#17364a;font-size:13pt;font-weight:bold">${title}</td></tr>
+              <tr><td style="padding:10pt 0 0;color:#374151;font-size:10pt;line-height:1.6">${content}</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>`;
+    const achievements = profile.achievements
+      .map(
+        (item) =>
+          `<tr><td style="padding:0 6pt 6pt 0;color:#176f70">✓</td><td style="padding:0 0 6pt;color:#374151">${this.escapeHtml(item)}</td></tr>`,
+      )
+      .join('');
+    const sidebarSection = (title: string, content: string) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 18pt">
+        <tr><td style="padding:0 0 6pt;border-bottom:1px solid #6d8491;color:#ffffff;font-size:10pt;font-weight:bold">${title}</td></tr>
+        <tr><td style="padding:8pt 0 0;color:#f0f5f7;font-size:9pt;line-height:1.6">${content}</td></tr>
+      </table>`;
+    const sidebarList = (items: string[]) =>
+      items.map((item) => `<div style="padding:0 0 6pt">${this.escapeHtml(item)}</div>`).join('');
+    const contacts = [
+      profile.email && `<div style="padding:0 0 7pt">${this.escapeHtml(profile.email)}</div>`,
+      profile.phone && `<div style="padding:0 0 7pt">${this.escapeHtml(profile.phone)}</div>`,
+      profile.location && `<div style="padding:0 0 7pt">${this.escapeHtml(profile.location)}</div>`,
+      profile.website &&
+        `<div style="padding:0 0 7pt"><a href="${this.escapeHtml(profile.website)}" style="color:#f0f5f7">${this.escapeHtml(profile.website)}</a></div>`,
+    ]
+      .filter(Boolean)
+      .join('');
+    const resumeSections = [
+      section('01', 'Profil', this.richHtml(profile.profile)),
+      profile.experience.length &&
+        section('02', 'Expérience professionnelle', entries(profile.experience)),
+      profile.education.length && section('03', 'Formation', entries(profile.education)),
+      profile.achievements.length &&
+        section(
+          '04',
+          'Réalisations',
+          `<table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse">${achievements}</table>`,
+        ),
+    ]
+      .filter(Boolean)
+      .join('');
     const html = `<!doctype html>
-      <html><head><meta charset="utf-8"><title>${this.escapeHtml(profile.name)} - CV</title>
-      <style>body{font-family:Arial,sans-serif;color:#17233c;line-height:1.55}
-      h1,h2{color:#1753a6}h2{border-bottom:1px solid #1753a6;padding-bottom:5px}
-      article{margin:18px 0}main{max-width:760px;margin:auto}</style></head>
-      <body><main><h1>${this.escapeHtml(profile.name)}</h1>
-      <h2>${this.escapeHtml(profile.title)}</h2><div>${this.richHtml(profile.profile)}</div>
-      <p>${this.escapeHtml(profile.email ?? '')} · ${this.escapeHtml(profile.phone ?? '')}
-      · ${this.escapeHtml(profile.location ?? '')}</p>
-      <h2>Expérience</h2>${entries(profile.experience)}
-      <h2>Formation</h2>${entries(profile.education)}
-      <h2>Langues</h2><ul>${list(profile.languages.map((language) => language.name))}</ul>
-      <h2>Centres d’intérêt</h2><ul>${list(profile.hobbies)}</ul>
-      <h2>Réalisations</h2><ul>${list(profile.achievements)}</ul></main></body></html>`;
+      <html><head><meta charset="utf-8"><title>${this.escapeHtml(profile.name)} - CV</title></head>
+      <body style="margin:0;padding:24pt;background:#eef2f7;font-family:Arial,Helvetica,sans-serif;color:#1f2937;line-height:1.5">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;max-width:900px;margin:0 auto;border-collapse:collapse;background:#ffffff">
+          <tr>
+            <td width="28%" valign="top" style="width:28%;padding:28pt 18pt;background:#17364a;color:#f7fafc">
+              ${sidebarSection('Contact', contacts)}
+              ${profile.languages.length ? sidebarSection('Langues', sidebarList(profile.languages.map((language) => language.name))) : ''}
+              ${profile.hobbies.length ? sidebarSection('Centres d’intérêt', sidebarList(profile.hobbies)) : ''}
+            </td>
+            <td width="72%" valign="top" style="width:72%;padding:32pt 34pt;background:#ffffff">
+              <p style="margin:0 0 8pt;color:#176f70;font-size:9pt;font-weight:bold;letter-spacing:2px">CURRICULUM VITAE</p>
+              <h1 style="margin:0;color:#101b2e;font-size:28pt;line-height:1.1">${this.escapeHtml(profile.name)}</h1>
+              <p style="margin:8pt 0 14pt;color:#374151;font-size:13pt;font-weight:bold">${this.escapeHtml(profile.title)}</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 24pt">
+                <tr><td width="62" height="3" style="width:62px;height:3px;background:#176f70"></td></tr>
+              </table>
+              ${resumeSections}
+            </td>
+          </tr>
+        </table>
+      </body></html>`;
     const blob = new Blob(['\ufeff', html], {
       type: 'application/msword;charset=utf-8',
     });
@@ -230,7 +328,9 @@ export class App implements OnDestroy, OnInit {
     const link = document.createElement('a');
     link.href = url;
     link.download = `${this.fileName(profile.name)}-cv.doc`;
+    this.document.body.appendChild(link);
     link.click();
+    link.remove();
     URL.revokeObjectURL(url);
   }
 
@@ -302,7 +402,9 @@ export class App implements OnDestroy, OnInit {
       location: 'Ville et pays',
       website: 'Site web',
     };
-    const matchedField = field.match(/^(languages|skills|hobbies|education|experience|achievements)/)?.[0];
+    const matchedField = field.match(
+      /^(languages|skills|hobbies|education|experience|achievements)/,
+    )?.[0];
     const sectionLabels: Record<string, string> = {
       languages: 'Langues',
       skills: 'Compétences',
@@ -311,7 +413,8 @@ export class App implements OnDestroy, OnInit {
       experience: 'Expérience professionnelle',
       achievements: 'Réalisations',
     };
-    const label = labels[field] ?? (matchedField ? sectionLabels[matchedField] : undefined) ?? 'Un champ';
+    const label =
+      labels[field] ?? (matchedField ? sectionLabels[matchedField] : undefined) ?? 'Un champ';
     const maxLength = message.match(/not be greater than (\d+) characters?/i);
 
     if (maxLength) {

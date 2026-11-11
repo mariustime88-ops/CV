@@ -6,18 +6,33 @@
     </a>
     <div class="topbar-actions">
       <button class="button button-quiet" type="button" (click)="openEditor()">
-        <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>
+        <svg aria-hidden="true" viewBox="0 0 24 24">
+          <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z" />
+        </svg>
         Espace administrateur
       </button>
-      <button class="button button-outline" type="button" (click)="exportWord()">
-        Télécharger Word
+      <button
+        class="button button-outline"
+        type="button"
+        (click)="exportWord()"
+        [disabled]="exporting()"
+      >
+        {{ exporting() ? 'Préparation…' : 'Télécharger Word' }}
       </button>
-      <button class="button button-primary" type="button" (click)="exportPdf()">
-        Télécharger PDF
+      <button
+        class="button button-primary"
+        type="button"
+        (click)="exportPdf()"
+        [disabled]="exporting()"
+      >
+        {{ exporting() ? 'Préparation…' : 'Télécharger PDF' }}
       </button>
     </div>
   </header>
 
+  @if (exportError()) {
+    <p class="connection-note connection-error" role="alert">{{ exportError() }}</p>
+  }
   @if (loading()) {
     <p class="connection-note" role="status">Chargement du CV…</p>
   }
@@ -31,20 +46,33 @@
         <h2 class="sidebar-heading">Contact</h2>
         <ul class="contact-list">
           <li>
-            <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+            <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <rect x="3" y="5" width="18" height="14" rx="2" />
+              <path d="m3 7 9 6 9-6" />
+            </svg>
             <span>{{ cv().email || 'Adresse e-mail' }}</span>
           </li>
           <li>
-            <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M21 16.5v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 1.1 3.8 2 2 0 0 1 3.1 1.6h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L7 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"/></svg>
+            <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path
+                d="M21 16.5v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 1.1 3.8 2 2 0 0 1 3.1 1.6h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L7 9.6a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z"
+              />
+            </svg>
             <span>{{ cv().phone || 'Téléphone' }}</span>
           </li>
           <li>
-            <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24">
+              <path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z" />
+              <circle cx="12" cy="10" r="2.5" />
+            </svg>
             <span>{{ cv().location || 'Ville, pays' }}</span>
           </li>
           @if (cv().website) {
             <li>
-              <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+              <svg class="contact-icon" aria-hidden="true" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20" />
+              </svg>
               <a [href]="cv().website" target="_blank" rel="noopener noreferrer">Site web</a>
             </li>
           }
@@ -72,13 +100,17 @@
           </ul>
         </section>
       }
-
     </aside>
 
     <section class="resume-content">
       <div class="resume-intro">
         <p class="eyebrow">Curriculum vitae</p>
-        <h1>@for (part of cv().name.trim().split(/\s+/); track $index; let last = $last) {<span [class.name-family]="last">{{ part }}</span>{{ last ? '' : ' ' }}}</h1>
+        <h1>
+          @for (part of cv().name.trim().split(/\s+/); track $index; let last = $last) {
+            <span [class.name-family]="last">{{ part }}</span
+            >{{ last ? '' : ' ' }}
+          }
+        </h1>
         <p class="job-title">{{ cv().title }}</p>
         <span class="intro-rule"></span>
       </div>
@@ -151,16 +183,25 @@
         <header class="editor-header">
           <div>
             <p class="eyebrow">Espace personnel</p>
-            <h2 id="editor-title">{{ authenticated() ? 'Modifier mon CV' : 'Connexion administrateur' }}</h2>
+            <h2 id="editor-title">
+              {{ authenticated() ? 'Modifier mon CV' : 'Connexion administrateur' }}
+            </h2>
           </div>
           @if (authenticated()) {
-            <button class="button button-quiet logout-button" type="button" (click)="logoutAdmin()">Déconnexion</button>
+            <button class="button button-quiet logout-button" type="button" (click)="logoutAdmin()">
+              Déconnexion
+            </button>
           }
-          <button class="close-button" type="button" aria-label="Fermer" (click)="closeEditor()">×</button>
+          <button class="close-button" type="button" aria-label="Fermer" (click)="closeEditor()">
+            ×
+          </button>
         </header>
 
         @if (!authenticated()) {
-          <p class="editor-intro">Cette page est réservée à l’administrateur du CV. Connectez-vous pour modifier ou ajouter des rubriques.</p>
+          <p class="editor-intro">
+            Cette page est réservée à l’administrateur du CV. Connectez-vous pour modifier ou
+            ajouter des rubriques.
+          </p>
           <form class="login-form" (ngSubmit)="loginAdmin()">
             <label class="field">
               <span>Mot de passe administrateur</span>
@@ -170,155 +211,226 @@
                 [(ngModel)]="loginPassword"
                 autocomplete="current-password"
                 required
-              >
+              />
             </label>
             @if (loginError()) {
               <p class="form-feedback form-error" role="alert">{{ loginError() }}</p>
             }
             <div class="editor-actions">
-              <button class="button button-quiet" type="button" (click)="closeEditor()">Annuler</button>
+              <button class="button button-quiet" type="button" (click)="closeEditor()">
+                Annuler
+              </button>
               <button class="button button-primary" type="submit" [disabled]="loggingIn()">
                 {{ loggingIn() ? 'Vérification…' : 'Se connecter' }}
               </button>
             </div>
           </form>
         } @else {
-          <p class="editor-intro">Les changements sont enregistrés dans la base de données du site. Seul l’administrateur connecté peut les enregistrer.</p>
+          <p class="editor-intro">
+            Les changements sont enregistrés dans la base de données du site. Seul l’administrateur
+            connecté peut les enregistrer.
+          </p>
 
           <form (ngSubmit)="saveCv()">
             <fieldset class="editor-group">
-            <legend>Présentation et contact</legend>
-            <div class="form-grid">
-              <label class="field">
-                <span>Nom complet</span>
-                <input name="name" [(ngModel)]="draft.name" maxlength="160" required>
-              </label>
-              <label class="field">
-                <span>Intitulé du métier</span>
-                <input name="title" [(ngModel)]="draft.title" maxlength="160" required>
-              </label>
-              <label class="field field-wide">
-                <span>Présentation</span>
-                <app-rich-text-editor
-                  name="profile"
-                  [(ngModel)]="draft.profile"
-                  label="Présentation professionnelle"
-                  placeholder="Présentez votre parcours et vos objectifs…"
-                ></app-rich-text-editor>
-              </label>
-              <label class="field">
-                <span>Adresse e-mail</span>
-                <input type="email" name="email" [(ngModel)]="draft.email">
-              </label>
-              <label class="field">
-                <span>Téléphone</span>
-                <input name="phone" [(ngModel)]="draft.phone">
-              </label>
-              <label class="field">
-                <span>Ville et pays</span>
-                <input name="location" [(ngModel)]="draft.location">
-              </label>
-              <label class="field">
-                <span>Site web (URL complète)</span>
-                <input type="url" name="website" [(ngModel)]="draft.website">
-              </label>
-            </div>
-          </fieldset>
-
-          <fieldset class="editor-group">
-            <legend>Expériences professionnelles</legend>
-            @for (entry of draft.experience; track $index) {
-              <div class="repeat-card">
-                <button class="remove-button" type="button" (click)="removeExperience($index)">Supprimer</button>
-                <div class="form-grid">
-                  <label class="field"><span>Période</span><input [name]="'experience-period-' + $index" [(ngModel)]="entry.period" placeholder="2024 – aujourd’hui" required></label>
-                  <label class="field"><span>Poste</span><input [name]="'experience-title-' + $index" [(ngModel)]="entry.title" required></label>
-                  <label class="field field-wide"><span>Entreprise</span><input [name]="'experience-organization-' + $index" [(ngModel)]="entry.organization" required></label>
-                  <label class="field field-wide">
-                    <span>Description du poste</span>
-                    <app-rich-text-editor
-                      [name]="'experience-description-' + $index"
-                      [(ngModel)]="entry.description"
-                      [label]="'Description du poste ' + ($index + 1)"
-                      placeholder="Missions, projets réalisés, résultats obtenus…"
-                    ></app-rich-text-editor>
-                  </label>
-                </div>
+              <legend>Présentation et contact</legend>
+              <div class="form-grid">
+                <label class="field">
+                  <span>Nom complet</span>
+                  <input name="name" [(ngModel)]="draft.name" maxlength="160" required />
+                </label>
+                <label class="field">
+                  <span>Intitulé du métier</span>
+                  <input name="title" [(ngModel)]="draft.title" maxlength="160" required />
+                </label>
+                <label class="field field-wide">
+                  <span>Présentation</span>
+                  <app-rich-text-editor
+                    name="profile"
+                    [(ngModel)]="draft.profile"
+                    label="Présentation professionnelle"
+                    placeholder="Présentez votre parcours et vos objectifs…"
+                  ></app-rich-text-editor>
+                </label>
+                <label class="field">
+                  <span>Adresse e-mail</span>
+                  <input type="email" name="email" [(ngModel)]="draft.email" />
+                </label>
+                <label class="field">
+                  <span>Téléphone</span>
+                  <input name="phone" [(ngModel)]="draft.phone" />
+                </label>
+                <label class="field">
+                  <span>Ville et pays</span>
+                  <input name="location" [(ngModel)]="draft.location" />
+                </label>
+                <label class="field">
+                  <span>Site web (URL complète)</span>
+                  <input type="url" name="website" [(ngModel)]="draft.website" />
+                </label>
               </div>
-            }
-            <button class="add-button" type="button" (click)="addExperience()">+ Ajouter une expérience</button>
-          </fieldset>
+            </fieldset>
 
-          <fieldset class="editor-group">
-            <legend>Formation</legend>
-            @for (entry of draft.education; track $index) {
-              <div class="repeat-card">
-                <button class="remove-button" type="button" (click)="removeEducation($index)">Supprimer</button>
-                <div class="form-grid">
-                  <label class="field"><span>Période</span><input [name]="'education-period-' + $index" [(ngModel)]="entry.period" required></label>
-                  <label class="field"><span>Diplôme ou formation</span><input [name]="'education-title-' + $index" [(ngModel)]="entry.title" required></label>
-                  <label class="field field-wide"><span>Établissement</span><input [name]="'education-organization-' + $index" [(ngModel)]="entry.organization" required></label>
-                  <label class="field field-wide">
-                    <span>Description de la formation</span>
-                    <app-rich-text-editor
-                      [name]="'education-description-' + $index"
-                      [(ngModel)]="entry.description"
-                      [label]="'Description de la formation ' + ($index + 1)"
-                      placeholder="Contenu étudié, projets, résultats obtenus…"
-                    ></app-rich-text-editor>
-                  </label>
-                </div>
-              </div>
-            }
-            <button class="add-button" type="button" (click)="addEducation()">+ Ajouter une formation</button>
-          </fieldset>
-
-          <fieldset class="editor-group">
-            <legend>Langues</legend>
-            <div class="form-grid">
-              <div class="field field-wide">
-                @for (language of draft.languages; track $index) {
-                  <div class="compact-row">
-                    <input [name]="'language-name-' + $index" [(ngModel)]="language.name" placeholder="Langue" required>
-                    <button class="remove-button" type="button" (click)="removeLanguage($index)">Retirer</button>
+            <fieldset class="editor-group">
+              <legend>Expériences professionnelles</legend>
+              @for (entry of draft.experience; track $index) {
+                <div class="repeat-card">
+                  <button class="remove-button" type="button" (click)="removeExperience($index)">
+                    Supprimer
+                  </button>
+                  <div class="form-grid">
+                    <label class="field"
+                      ><span>Période</span
+                      ><input
+                        [name]="'experience-period-' + $index"
+                        [(ngModel)]="entry.period"
+                        placeholder="2024 – aujourd’hui"
+                        required
+                    /></label>
+                    <label class="field"
+                      ><span>Poste</span
+                      ><input
+                        [name]="'experience-title-' + $index"
+                        [(ngModel)]="entry.title"
+                        required
+                    /></label>
+                    <label class="field field-wide"
+                      ><span>Entreprise</span
+                      ><input
+                        [name]="'experience-organization-' + $index"
+                        [(ngModel)]="entry.organization"
+                        required
+                    /></label>
+                    <label class="field field-wide">
+                      <span>Description du poste</span>
+                      <app-rich-text-editor
+                        [name]="'experience-description-' + $index"
+                        [(ngModel)]="entry.description"
+                        [label]="'Description du poste ' + ($index + 1)"
+                        placeholder="Missions, projets réalisés, résultats obtenus…"
+                      ></app-rich-text-editor>
+                    </label>
                   </div>
-                }
-                <button class="add-button" type="button" (click)="addLanguage()">+ Ajouter une langue</button>
-              </div>
-            </div>
-          </fieldset>
+                </div>
+              }
+              <button class="add-button" type="button" (click)="addExperience()">
+                + Ajouter une expérience
+              </button>
+            </fieldset>
 
-          <fieldset class="editor-group">
-            <legend>Centres d’intérêt</legend>
-            <label class="field">
-              <span>Un centre d’intérêt par ligne</span>
-              <textarea name="hobbies" [(ngModel)]="hobbiesText" rows="3"></textarea>
-            </label>
-          </fieldset>
+            <fieldset class="editor-group">
+              <legend>Formation</legend>
+              @for (entry of draft.education; track $index) {
+                <div class="repeat-card">
+                  <button class="remove-button" type="button" (click)="removeEducation($index)">
+                    Supprimer
+                  </button>
+                  <div class="form-grid">
+                    <label class="field"
+                      ><span>Période</span
+                      ><input
+                        [name]="'education-period-' + $index"
+                        [(ngModel)]="entry.period"
+                        required
+                    /></label>
+                    <label class="field"
+                      ><span>Diplôme ou formation</span
+                      ><input
+                        [name]="'education-title-' + $index"
+                        [(ngModel)]="entry.title"
+                        required
+                    /></label>
+                    <label class="field field-wide"
+                      ><span>Établissement</span
+                      ><input
+                        [name]="'education-organization-' + $index"
+                        [(ngModel)]="entry.organization"
+                        required
+                    /></label>
+                    <label class="field field-wide">
+                      <span>Description de la formation</span>
+                      <app-rich-text-editor
+                        [name]="'education-description-' + $index"
+                        [(ngModel)]="entry.description"
+                        [label]="'Description de la formation ' + ($index + 1)"
+                        placeholder="Contenu étudié, projets, résultats obtenus…"
+                      ></app-rich-text-editor>
+                    </label>
+                  </div>
+                </div>
+              }
+              <button class="add-button" type="button" (click)="addEducation()">
+                + Ajouter une formation
+              </button>
+            </fieldset>
 
-          <fieldset class="editor-group">
-            <legend>Réalisations</legend>
-            @for (achievement of draft.achievements; track $index) {
-              <div class="compact-row">
-                <input [name]="'achievement-' + $index" [(ngModel)]="draft.achievements[$index]" placeholder="Réussite ou distinction" maxlength="1000" required>
-                <button class="remove-button" type="button" (click)="removeAchievement($index)">Retirer</button>
+            <fieldset class="editor-group">
+              <legend>Langues</legend>
+              <div class="form-grid">
+                <div class="field field-wide">
+                  @for (language of draft.languages; track $index) {
+                    <div class="compact-row">
+                      <input
+                        [name]="'language-name-' + $index"
+                        [(ngModel)]="language.name"
+                        placeholder="Langue"
+                        required
+                      />
+                      <button class="remove-button" type="button" (click)="removeLanguage($index)">
+                        Retirer
+                      </button>
+                    </div>
+                  }
+                  <button class="add-button" type="button" (click)="addLanguage()">
+                    + Ajouter une langue
+                  </button>
+                </div>
               </div>
+            </fieldset>
+
+            <fieldset class="editor-group">
+              <legend>Centres d’intérêt</legend>
+              <label class="field">
+                <span>Un centre d’intérêt par ligne</span>
+                <textarea name="hobbies" [(ngModel)]="hobbiesText" rows="3"></textarea>
+              </label>
+            </fieldset>
+
+            <fieldset class="editor-group">
+              <legend>Réalisations</legend>
+              @for (achievement of draft.achievements; track $index) {
+                <div class="compact-row">
+                  <input
+                    [name]="'achievement-' + $index"
+                    [(ngModel)]="draft.achievements[$index]"
+                    placeholder="Réussite ou distinction"
+                    maxlength="1000"
+                    required
+                  />
+                  <button class="remove-button" type="button" (click)="removeAchievement($index)">
+                    Retirer
+                  </button>
+                </div>
+              }
+              <button class="add-button" type="button" (click)="addAchievement()">
+                + Ajouter une réalisation
+              </button>
+            </fieldset>
+
+            @if (saveError()) {
+              <p class="form-feedback form-error" role="alert">{{ saveError() }}</p>
             }
-            <button class="add-button" type="button" (click)="addAchievement()">+ Ajouter une réalisation</button>
-          </fieldset>
-
-          @if (saveError()) {
-            <p class="form-feedback form-error" role="alert">{{ saveError() }}</p>
-          }
-          @if (saveSuccess()) {
-            <p class="form-feedback form-success" role="status">{{ saveSuccess() }}</p>
-          }
-          <div class="editor-actions">
-            <button class="button button-quiet" type="button" (click)="closeEditor()">Annuler</button>
-            <button class="button button-primary" type="submit" [disabled]="saving()">
-              {{ saving() ? 'Enregistrement…' : 'Enregistrer mon CV' }}
-            </button>
-          </div>
+            @if (saveSuccess()) {
+              <p class="form-feedback form-success" role="status">{{ saveSuccess() }}</p>
+            }
+            <div class="editor-actions">
+              <button class="button button-quiet" type="button" (click)="closeEditor()">
+                Annuler
+              </button>
+              <button class="button button-primary" type="submit" [disabled]="saving()">
+                {{ saving() ? 'Enregistrement…' : 'Enregistrer mon CV' }}
+              </button>
+            </div>
           </form>
         }
       </section>

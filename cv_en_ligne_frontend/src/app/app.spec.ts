@@ -1,10 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
+import { afterEach, vi } from 'vitest';
 import { App } from './app';
 import { CvApiService } from './cv-api.service';
 import { STARTER_CV } from './cv-profile';
 
 describe('App', () => {
+  afterEach(() => vi.restoreAllMocks());
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
@@ -34,7 +37,9 @@ describe('App', () => {
     fixture.detectChanges();
 
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain(STARTER_CV.name);
+    expect(compiled.querySelector('h1')?.textContent?.replace(/\s+/g, ' ')).toContain(
+      STARTER_CV.name,
+    );
     expect(compiled.textContent).toContain('Profil');
     expect(compiled.querySelector('.portrait')).toBeNull();
     expect(compiled.querySelector('aside img')).toBeNull();
@@ -67,6 +72,51 @@ describe('App', () => {
     expect(compiled.querySelector('.meter-track')).toBeNull();
   });
 
+  it('should export a Word document with the CV sidebar and section layout', async () => {
+    const profile = {
+      ...STARTER_CV,
+      experience: [
+        {
+          period: '2024',
+          title: 'Développeuse',
+          organization: 'Entreprise',
+          description: 'Création de sites web.',
+        },
+      ],
+    };
+    TestBed.overrideProvider(CvApiService, {
+      useValue: {
+        load: () => of(profile),
+        login: () => of({ token: 'test-token', expires_in: 28800 }),
+        logout: () => of({ message: 'Session fermée.' }),
+        save: () => of(profile),
+      },
+    });
+    const createObjectUrl = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:cv');
+    const revokeObjectUrl = vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    const clickLink = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    compiled.querySelector<HTMLButtonElement>('.topbar .button-outline')?.click();
+
+    expect(clickLink).toHaveBeenCalledOnce();
+    expect(revokeObjectUrl).toHaveBeenCalledWith('blob:cv');
+    const exportedBlob = createObjectUrl.mock.calls[0][0];
+    if (!(exportedBlob instanceof Blob)) {
+      throw new Error('The Word export did not create a Blob.');
+    }
+    const document = await exportedBlob.text();
+    expect(document).toContain('width:28%');
+    expect(document).toContain('Contact');
+    expect(document).toContain(profile.name);
+    expect(document).toContain('Expérience professionnelle');
+    expect(document).not.toContain('Compétences');
+  });
+
   it('should hide CV editing fields until the administrator signs in', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
@@ -84,9 +134,9 @@ describe('App', () => {
     password!.value = 'test-password';
     password!.dispatchEvent(new Event('input', { bubbles: true }));
     fixture.detectChanges();
-    compiled.querySelector<HTMLFormElement>('.login-form')?.dispatchEvent(
-      new Event('submit', { bubbles: true, cancelable: true }),
-    );
+    compiled
+      .querySelector<HTMLFormElement>('.login-form')
+      ?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
