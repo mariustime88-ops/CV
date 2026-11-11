@@ -27,14 +27,6 @@
 
   <main class="cv-sheet" id="cv">
     <aside class="sidebar">
-      <div class="portrait">
-        @if (cv().photo_url) {
-          <img [src]="cv().photo_url" [alt]="'Portrait de ' + cv().name">
-        } @else {
-          <span>{{ initials() }}</span>
-        }
-      </div>
-
       <div class="sidebar-section contact-section">
         <h2 class="sidebar-heading">Contact</h2>
         <ul class="contact-list">

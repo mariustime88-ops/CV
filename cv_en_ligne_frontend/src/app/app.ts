@@ -68,15 +68,6 @@ export class App implements OnDestroy, OnInit {
     this.document.body.style.overflow = this.previousBodyOverflow;
   }
 
-  protected initials(): string {
-    return this.cv()
-      .name.split(/\s+/)
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0].toLocaleUpperCase())
-      .join('');
-  }
-
   protected openEditor(): void {
     this.previousBodyOverflow = this.document.body.style.overflow;
     this.document.body.style.overflow = 'hidden';

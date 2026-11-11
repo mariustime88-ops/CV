@@ -36,6 +36,8 @@ describe('App', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain(STARTER_CV.name);
     expect(compiled.textContent).toContain('Profil');
+    expect(compiled.querySelector('.portrait')).toBeNull();
+    expect(compiled.querySelector('aside img')).toBeNull();
   });
 
   it('should show languages without levels or a skills section', async () => {
