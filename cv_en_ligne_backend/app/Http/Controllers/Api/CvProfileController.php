@@ -63,7 +63,6 @@ class CvProfileController extends Controller
             'photo_url' => ['nullable', 'url', 'max:2048'],
             'languages' => ['present', 'array'],
             'languages.*.name' => ['required', 'string', 'max:500'],
-            'languages.*.level' => ['required', 'integer', 'between:0,100'],
             'skills' => ['present', 'array'],
             'skills.*.name' => ['required', 'string', 'max:500'],
             'skills.*.level' => ['required', 'integer', 'between:0,100'],

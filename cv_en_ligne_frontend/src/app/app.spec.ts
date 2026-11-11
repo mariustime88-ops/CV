@@ -38,6 +38,33 @@ describe('App', () => {
     expect(compiled.textContent).toContain('Profil');
   });
 
+  it('should show languages without levels or a skills section', async () => {
+    TestBed.overrideProvider(CvApiService, {
+      useValue: {
+        load: () =>
+          of({
+            ...STARTER_CV,
+            languages: [{ name: 'Français', level: 80 }],
+            skills: [{ name: 'SQL', level: 80 }],
+          }),
+        login: () => of({ token: 'test-token', expires_in: 28800 }),
+        logout: () => of({ message: 'Session fermée.' }),
+        save: () => of(STARTER_CV),
+      },
+    });
+
+    const fixture = TestBed.createComponent(App);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    expect(compiled.textContent).toContain('Français');
+    expect(compiled.textContent).not.toContain('80%');
+    expect(compiled.textContent).not.toContain('Compétences');
+    expect(compiled.querySelector('.meter-track')).toBeNull();
+  });
+
   it('should hide CV editing fields until the administrator signs in', async () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();

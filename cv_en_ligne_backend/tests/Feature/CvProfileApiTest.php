@@ -60,6 +60,8 @@ class CvProfileApiTest extends TestCase
             ->assertOk()
             ->assertJsonPath('name', 'Ada Lovelace')
             ->assertJsonPath('profile', '<p><strong>Présentation</strong></p>')
+            ->assertJsonPath('languages.0.name', 'Français')
+            ->assertJsonMissingPath('languages.0.level')
             ->assertJsonPath('skills.0.name', $profile['skills'][0]['name'])
             ->assertJsonPath('experience.0.description', '<ul><li>Réalisation</li><li><a>Lien</a></li></ul>');
 
@@ -138,7 +140,7 @@ class CvProfileApiTest extends TestCase
             'location' => 'Paris',
             'website' => '',
             'photo_url' => '',
-            'languages' => [['name' => 'Français', 'level' => 100]],
+            'languages' => [['name' => 'Français']],
             'skills' => [['name' => 'PHP', 'level' => 80]],
             'hobbies' => ['Lecture'],
             'education' => [],

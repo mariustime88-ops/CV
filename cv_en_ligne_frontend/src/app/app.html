@@ -64,24 +64,7 @@
           <h2 class="sidebar-heading">Langues</h2>
           <ul class="meter-list">
             @for (language of cv().languages; track $index) {
-              <li class="meter-item">
-                <div class="meter-label"><span>{{ language.name }}</span><span>{{ language.level }}%</span></div>
-                <div class="meter-track"><span [style.width.%]="language.level"></span></div>
-              </li>
-            }
-          </ul>
-        </section>
-      }
-
-      @if (cv().skills.length) {
-        <section class="sidebar-section">
-          <h2 class="sidebar-heading">Compétences</h2>
-          <ul class="meter-list">
-            @for (skill of cv().skills; track $index) {
-              <li class="meter-item">
-                <div class="meter-label"><span>{{ skill.name }}</span><span>{{ skill.level }}%</span></div>
-                <div class="meter-track"><span [style.width.%]="skill.level"></span></div>
-              </li>
+              <li>{{ language.name }}</li>
             }
           </ul>
         </section>
@@ -311,25 +294,12 @@
           </fieldset>
 
           <fieldset class="editor-group">
-            <legend>Compétences et langues (niveau de 0 à 100 %)</legend>
+            <legend>Langues</legend>
             <div class="form-grid">
               <div class="field field-wide">
-                <span>Compétences</span>
-                @for (skill of draft.skills; track $index) {
-                  <div class="compact-row">
-                    <input [name]="'skill-name-' + $index" [(ngModel)]="skill.name" placeholder="Compétence" maxlength="500" required>
-                    <input type="number" [name]="'skill-level-' + $index" [(ngModel)]="skill.level" min="0" max="100" aria-label="Niveau de compétence" required>
-                    <button class="remove-button" type="button" (click)="removeSkill($index)">Retirer</button>
-                  </div>
-                }
-                <button class="add-button" type="button" (click)="addSkill()">+ Ajouter une compétence</button>
-              </div>
-              <div class="field field-wide">
-                <span>Langues</span>
                 @for (language of draft.languages; track $index) {
                   <div class="compact-row">
                     <input [name]="'language-name-' + $index" [(ngModel)]="language.name" placeholder="Langue" required>
-                    <input type="number" [name]="'language-level-' + $index" [(ngModel)]="language.level" min="0" max="100" aria-label="Niveau de langue" required>
                     <button class="remove-button" type="button" (click)="removeLanguage($index)">Retirer</button>
                   </div>
                 }

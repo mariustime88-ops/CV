@@ -148,16 +148,8 @@ export class App implements OnDestroy, OnInit {
     this.draft.education.splice(index, 1);
   }
 
-  protected addSkill(): void {
-    this.draft.skills.push({ name: '', level: 50 });
-  }
-
-  protected removeSkill(index: number): void {
-    this.draft.skills.splice(index, 1);
-  }
-
   protected addLanguage(): void {
-    this.draft.languages.push({ name: '', level: 50 });
+    this.draft.languages.push({ name: '' });
   }
 
   protected removeLanguage(index: number): void {
@@ -184,6 +176,7 @@ export class App implements OnDestroy, OnInit {
 
     const updatedProfile: CvProfile = {
       ...this.draft,
+      languages: this.draft.languages.map(({ name }) => ({ name })),
       hobbies: this.hobbiesText
         .split(/\r?\n/)
         .map((hobby) => hobby.trim())
@@ -244,7 +237,6 @@ export class App implements OnDestroy, OnInit {
       · ${this.escapeHtml(profile.location ?? '')}</p>
       <h2>Expérience</h2>${entries(profile.experience)}
       <h2>Formation</h2>${entries(profile.education)}
-      <h2>Compétences</h2><ul>${list(profile.skills.map((skill) => skill.name))}</ul>
       <h2>Langues</h2><ul>${list(profile.languages.map((language) => language.name))}</ul>
       <h2>Centres d’intérêt</h2><ul>${list(profile.hobbies)}</ul>
       <h2>Réalisations</h2><ul>${list(profile.achievements)}</ul></main></body></html>`;

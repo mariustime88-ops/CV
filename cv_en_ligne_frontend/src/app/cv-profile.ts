@@ -3,6 +3,11 @@ export interface CvSkill {
   level: number;
 }
 
+export interface CvLanguage {
+  name: string;
+  level?: number;
+}
+
 export interface CvEntry {
   period: string;
   title: string;
@@ -20,7 +25,7 @@ export interface CvProfile {
   location: string | null;
   website: string | null;
   photo_url: string | null;
-  languages: CvSkill[];
+  languages: CvLanguage[];
   skills: CvSkill[];
   hobbies: string[];
   education: CvEntry[];
