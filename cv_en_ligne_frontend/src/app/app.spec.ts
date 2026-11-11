@@ -92,5 +92,6 @@ describe('App', () => {
     expect(compiled.querySelector('.login-form')).toBeNull();
     expect(compiled.querySelector('app-rich-text-editor')).not.toBeNull();
     expect(compiled.querySelector('[aria-label="Mise en forme du texte"]')).not.toBeNull();
+    expect(compiled.querySelector('[name="photo"]')).toBeNull();
   });
 });

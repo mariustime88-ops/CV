@@ -37,7 +37,6 @@ export class App implements OnDestroy, OnInit {
   protected draft: CvProfile = structuredClone(STARTER_CV);
   protected loginPassword = '';
   protected hobbiesText = '';
-  protected selectedPhoto: File | null = null;
   private adminToken = '';
   private previousBodyOverflow = '';
 
@@ -83,7 +82,6 @@ export class App implements OnDestroy, OnInit {
     this.document.body.style.overflow = 'hidden';
     this.draft = structuredClone(this.cv());
     this.hobbiesText = this.draft.hobbies.join('\n');
-    this.selectedPhoto = null;
     this.saveError.set('');
     this.saveSuccess.set('');
     this.loginError.set('');
@@ -164,11 +162,6 @@ export class App implements OnDestroy, OnInit {
     this.draft.achievements.splice(index, 1);
   }
 
-  protected selectPhoto(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.selectedPhoto = input.files?.[0] ?? null;
-  }
-
   protected saveCv(): void {
     this.saving.set(true);
     this.saveError.set('');
@@ -183,12 +176,11 @@ export class App implements OnDestroy, OnInit {
         .filter(Boolean),
     };
 
-    this.cvApi.save(updatedProfile, this.adminToken, this.selectedPhoto ?? undefined).subscribe({
+    this.cvApi.save(updatedProfile, this.adminToken).subscribe({
       next: (profile) => {
         this.cv.set(profile);
         this.draft = structuredClone(profile);
         this.hobbiesText = profile.hobbies.join('\n');
-        this.selectedPhoto = null;
         this.saving.set(false);
         this.saveSuccess.set('Votre CV a été enregistré.');
       },
@@ -318,8 +310,6 @@ export class App implements OnDestroy, OnInit {
       phone: 'Téléphone',
       location: 'Ville et pays',
       website: 'Site web',
-      photo_url: 'Photo',
-      photo: 'Photo',
     };
     const matchedField = field.match(/^(languages|skills|hobbies|education|experience|achievements)/)?.[0];
     const sectionLabels: Record<string, string> = {
@@ -343,10 +333,6 @@ export class App implements OnDestroy, OnInit {
 
     if (message.toLowerCase().includes('valid url')) {
       return `${label} : veuillez saisir une adresse URL valide.`;
-    }
-
-    if (field === 'photo' && (message.toLowerCase().includes('image') || message.toLowerCase().includes('mimes'))) {
-      return 'Photo : sélectionnez une image JPG, PNG ou WebP de 5 Mo maximum.';
     }
 
     return `${label} : vérifiez la valeur saisie.`;

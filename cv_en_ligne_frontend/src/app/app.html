@@ -230,18 +230,6 @@
                 <span>Site web (URL complète)</span>
                 <input type="url" name="website" [(ngModel)]="draft.website">
               </label>
-              <label class="field field-wide">
-                <span>Photo (facultative)</span>
-                <input
-                  type="file"
-                  name="photo"
-                  accept="image/jpeg,image/png,image/webp"
-                  (change)="selectPhoto($event)"
-                >
-                @if (selectedPhoto) {
-                  <small>Fichier sélectionné : {{ selectedPhoto.name }}</small>
-                }
-              </label>
             </div>
           </fieldset>
 
